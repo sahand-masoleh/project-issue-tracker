@@ -54,7 +54,7 @@ module.exports = function (app) {
 			let project = req.params.project;
 			let Issue = mongoose.model("Issue", issueSchema, project);
 			try {
-				if (!req.body._id) throw Error("missing _id");
+				if (!req.body._id) return res.json({ error: "missing _id" });
 
 				let queries = {};
 				for (let query in req.body) {
@@ -62,14 +62,15 @@ module.exports = function (app) {
 						queries[query] = req.body[query];
 					}
 				}
-				if (Object.keys(queries) == false) throw Error("no update field(s) sent");
+				if (Object.keys(queries) == false)
+					return res.json({ error: "no update field(s) sent", _id: req.body._id });
 				queries.updated_on = Date.now();
 
 				let result = await Issue.findOneAndUpdate({ _id: req.body._id }, queries, {
 					useFindAndModify: false,
 					new: true,
 				});
-				if (!result) throw Error("invalid _id");
+				if (!result) return res.json({ error: "invalid _id", _id: req.body._id });
 
 				res.json({ result: "successfully updated", _id: req.body._id });
 			} catch (error) {
@@ -81,9 +82,9 @@ module.exports = function (app) {
 			let project = req.params.project;
 			let Issue = mongoose.model("Issue", issueSchema, project);
 			try {
-				if (!req.body._id) throw Error("missing _id");
+				if (!req.body._id) return res.json({ error: "missing _id" });
 				let result = await Issue.findOneAndDelete({ _id: req.body._id });
-				if (!result) throw Error("invalid _id");
+				if (!result) return res.json({ error: "invalid _id", _id: req.body._id });
 				res.json({ result: "successfully deleted", _id: req.body._id });
 			} catch (error) {
 				res.json({ error: "could not delete", _id: req.body._id });
