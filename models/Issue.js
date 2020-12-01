@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const issueSchema = mongoose.Schema({
-  open: {
+	open: {
 		type: Boolean,
 		default: true,
 	},
