@@ -19,11 +19,11 @@ module.exports = function (app) {
 				queries[query] = req.query[query];
 			}
 			let Issue = mongoose.model("Issue", issueSchema, project);
-			let result = await Issue.find(queries);
 			try {
-				res.status(200).json(result);
+				let result = await Issue.find(queries);
+				res.json(result);
 			} catch (error) {
-				res.status(400).send(error.message);
+				res.send(error.message);
 			}
 		})
 
@@ -44,31 +44,36 @@ module.exports = function (app) {
 					throw Error("required field(s) missing");
 				}
 				let result = await Issue.create(issue);
-				res.status(200).json(result);
+				res.json(result);
 			} catch (error) {
-				res.status(400).send(error.message);
+				res.json({ error: error.message });
 			}
 		})
 
 		.put(async (req, res) => {
 			let project = req.params.project;
 			let Issue = mongoose.model("Issue", issueSchema, project);
-			let queries = { updated_on: Date.now() };
-			for (let query in req.body) {
-				if (req.body[query] && query !== "_id") {
-					queries[query] = req.body[query];
-				}
-			}
 			try {
-				if (!req.body._id) throw Error("missing id");
+				if (!req.body._id) throw Error("missing _id");
+
+				let queries = {};
+				for (let query in req.body) {
+					if (req.body[query] && query !== "_id") {
+						queries[query] = req.body[query];
+					}
+				}
+				if (Object.keys(queries) == false) throw Error("no update field(s) sent");
+				queries.updated_on = Date.now();
+
 				let result = await Issue.findOneAndUpdate({ _id: req.body._id }, queries, {
 					useFindAndModify: false,
 					new: true,
 				});
-				if (!result) throw Error("invalid id");
-				res.status(200).json(result);
+				if (!result) throw Error("invalid _id");
+
+				res.json({ result: "successfully updated", _id: req.body._id });
 			} catch (error) {
-				res.status(400).send(error.message);
+				res.json({ error: "could not update", _id: req.body._id });
 			}
 		})
 
@@ -76,12 +81,12 @@ module.exports = function (app) {
 			let project = req.params.project;
 			let Issue = mongoose.model("Issue", issueSchema, project);
 			try {
-				if (!req.body._id) throw Error("missing id");
+				if (!req.body._id) throw Error("missing _id");
 				let result = await Issue.findOneAndDelete({ _id: req.body._id });
-				if (!result) throw Error("invalid id");
-				res.status(200).json(result);
+				if (!result) throw Error("invalid _id");
+				res.json({ result: "successfully deleted", _id: req.body._id });
 			} catch (error) {
-				res.status(400).send(error.message);
+				res.json({ error: "could not delete", _id: req.body._id });
 			}
 		});
 };
