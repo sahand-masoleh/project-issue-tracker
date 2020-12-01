@@ -20,7 +20,7 @@ module.exports = function (app) {
 			}
 			let Issue = mongoose.model("Issue", issueSchema, project);
 			try {
-				let result = await Issue.find(queries);
+				let result = await Issue.find(queries).select("-__v");
 				res.json(result);
 			} catch (error) {
 				res.send(error.message);
@@ -34,7 +34,7 @@ module.exports = function (app) {
 				issue_title: req.body.issue_title,
 				issue_text: req.body.issue_text,
 				created_by: req.body.created_by,
-				assigend_to: req.body.assigend_to,
+				assigned_to: req.body.assigned_to,
 				status_text: req.body.status_text,
 			});
 			try {
@@ -70,7 +70,7 @@ module.exports = function (app) {
 					useFindAndModify: false,
 					new: true,
 				});
-				if (!result) return res.json({ error: "invalid _id", _id: req.body._id });
+				if (!result) throw Error
 
 				res.json({ result: "successfully updated", _id: req.body._id });
 			} catch (error) {
@@ -84,7 +84,7 @@ module.exports = function (app) {
 			try {
 				if (!req.body._id) return res.json({ error: "missing _id" });
 				let result = await Issue.findOneAndDelete({ _id: req.body._id });
-				if (!result) return res.json({ error: "invalid _id", _id: req.body._id });
+				if (!result) throw Error
 				res.json({ result: "successfully deleted", _id: req.body._id });
 			} catch (error) {
 				res.json({ error: "could not delete", _id: req.body._id });
